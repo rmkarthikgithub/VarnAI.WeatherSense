@@ -1,0 +1,341 @@
+{
+  "info": {
+    "name": "VarnAI WeatherSense API",
+    "description": "Postman Collection for VarnAI WeatherSense standalone agricultural weather data platform.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5246",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "varnai-weathersense-dev-key-2026",
+      "type": "string"
+    },
+    {
+      "key": "locationId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "1. Get All Locations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/locations?isActive=true&collectionEnabled=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "locations"],
+              "query": [
+                { "key": "isActive", "value": "true" },
+                { "key": "collectionEnabled", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Create Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Emmampoondi Farm\",\n  \"code\": \"EMMAMPOONDI_FARM\",\n  \"description\": \"VarnAI central dairy and banana cultivation farm\",\n  \"latitude\": 11.234567,\n  \"longitude\": 77.123456,\n  \"timezone\": \"Asia/Kolkata\",\n  \"country\": \"India\",\n  \"state\": \"Tamil Nadu\",\n  \"district\": \"Tiruppur\",\n  \"provider\": \"OpenMeteo\",\n  \"collectionEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "locations"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Location by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/locations/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "locations", "{{locationId}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Emmampoondi Central Farm\",\n  \"description\": \"Updated description for central farm hub\",\n  \"latitude\": 11.234567,\n  \"longitude\": 77.123456,\n  \"timezone\": \"Asia/Kolkata\",\n  \"country\": \"India\",\n  \"state\": \"Tamil Nadu\",\n  \"district\": \"Tiruppur\",\n  \"collectionEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/locations/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "locations", "{{locationId}}"]
+            }
+          }
+        },
+        {
+          "name": "5. Enable/Disable Location Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true,\n  \"collectionEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/locations/{{locationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "locations", "{{locationId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collection (n8n Integration)",
+      "item": [
+        {
+          "name": "6. Collect Weather - All Active Locations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Trigger-Source",
+                "value": "n8n"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"forecastDays\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/collect",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "collect"]
+            }
+          }
+        },
+        {
+          "name": "7. Collect Weather - Single Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Trigger-Source",
+                "value": "Manual"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"forecastDays\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/collect/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "collect", "{{locationId}}"]
+            }
+          }
+        },
+        {
+          "name": "8. Get Latest Collection Execution",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/collections/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "collections", "latest"]
+            }
+          }
+        },
+        {
+          "name": "9. Get Collection Execution by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/collections/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "collections", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather Data & ML Queries",
+      "item": [
+        {
+          "name": "10. Get Current Weather",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "current"]
+            }
+          }
+        },
+        {
+          "name": "11. Get Hourly Weather",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/hourly?from=2026-09-19T00:00:00Z&to=2026-09-19T23:59:59Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "hourly"],
+              "query": [
+                { "key": "from", "value": "2026-09-19T00:00:00Z" },
+                { "key": "to", "value": "2026-09-19T23:59:59Z" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "12. Get Forecast Snapshot",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/forecast?days=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "forecast"],
+              "query": [
+                { "key": "days", "value": "4" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "13. Get Historical Weather (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/history?pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "history"],
+              "query": [
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "14. Get Weather Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "summary"]
+            }
+          }
+        },
+        {
+          "name": "15. Get ML-Ready Dataset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/{{locationId}}/dataset?interval=hourly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "{{locationId}}", "dataset"],
+              "query": [
+                { "key": "interval", "value": "hourly" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "16. Liveness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            }
+          }
+        },
+        {
+          "name": "17. Readiness Check (SQL Server)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

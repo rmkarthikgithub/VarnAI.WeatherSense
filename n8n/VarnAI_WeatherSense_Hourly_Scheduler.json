@@ -1,0 +1,230 @@
+{
+  "name": "VarnAI WeatherSense Hourly Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000001",
+      "name": "Hourly Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5270/api/v1/weather/collect",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "varnai-weathersense-dev-key-2026"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"locationIds\": [],\n  \"forecastDays\": 4,\n  \"triggerSource\": \"N8nWorkflow\"\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000002",
+      "name": "Trigger WeatherSense Collect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "Completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "10000000-0000-0000-0000-000000000003",
+      "name": "Check Execution Status",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "result",
+              "value": "WeatherSense collection completed successfully",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "executionId",
+              "value": "={{ $json.executionId }}",
+              "type": "number"
+            },
+            {
+              "id": "a3",
+              "name": "locationsSucceeded",
+              "value": "={{ $json.locationsSucceeded }}",
+              "type": "number"
+            },
+            {
+              "id": "a4",
+              "name": "recordsInserted",
+              "value": "={{ $json.recordsInserted }}",
+              "type": "number"
+            },
+            {
+              "id": "a5",
+              "name": "durationMs",
+              "value": "={{ $json.durationMs }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000004",
+      "name": "Log Success Telemetry",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        940,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1",
+              "name": "warning",
+              "value": "WeatherSense collection experienced partial or total failure!",
+              "type": "string"
+            },
+            {
+              "id": "e2",
+              "name": "executionId",
+              "value": "={{ $json.executionId }}",
+              "type": "number"
+            },
+            {
+              "id": "e3",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "e4",
+              "name": "locationsFailed",
+              "value": "={{ $json.locationsFailed }}",
+              "type": "number"
+            },
+            {
+              "id": "e5",
+              "name": "errorSummary",
+              "value": "={{ $json.errorSummary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10000000-0000-0000-0000-000000000005",
+      "name": "Alert Operators",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        940,
+        440
+      ]
+    }
+  ],
+  "connections": {
+    "Hourly Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger WeatherSense Collect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger WeatherSense Collect": {
+      "main": [
+        [
+          {
+            "node": "Check Execution Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Execution Status": {
+      "main": [
+        [
+          {
+            "node": "Log Success Telemetry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert Operators",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

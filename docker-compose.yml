@@ -1,0 +1,39 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: weathersense-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD:-VarnAI_StrongP@ss2026!}
+      - MSSQL_PID=Developer
+    ports:
+      - "14333:1433"
+    volumes:
+      - weathersense-sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD:-VarnAI_StrongP@ss2026!}\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  weathersense-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: weathersense-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__WeatherSenseDb=Server=sqlserver,1433;Database=VarnAI_WeatherSense_dev;User Id=sa;Password=${SA_PASSWORD:-VarnAI_StrongP@ss2026!};TrustServerCertificate=True;
+      - WeatherSenseSecurity__ApiKey=${WEATHERSENSE_API_KEY:-varnai-weathersense-prod-key}
+      - OpenMeteo__BaseUrl=https://api.open-meteo.com/
+      - OpenMeteo__DefaultForecastDays=4
+      - OpenMeteo__TimeoutSeconds=30
+    restart: unless-stopped
+
+volumes:
+  weathersense-sqldata:
