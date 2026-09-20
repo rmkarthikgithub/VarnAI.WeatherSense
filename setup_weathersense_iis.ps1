@@ -63,6 +63,32 @@ if (-not (Test-Path $targetPath)) {
 
 & robocopy.exe "$publishDir" "$targetPath" /E /NP /R:3 /W:2 | Out-Null
 
+# Ensure ASPNETCORE_ENVIRONMENT=Production in web.config
+$targetWebConfig = "$targetPath\web.config"
+if (Test-Path $targetWebConfig) {
+    try {
+        [xml]$xml = Get-Content $targetWebConfig
+        $aspNetCore = $xml.SelectSingleNode("//aspNetCore")
+        if ($aspNetCore -ne $null) {
+            $envVars = $aspNetCore.SelectSingleNode("environmentVariables")
+            if ($envVars -eq $null) {
+                $envVars = $xml.CreateElement("environmentVariables")
+                $aspNetCore.AppendChild($envVars) | Out-Null
+            }
+            $existing = $envVars.SelectSingleNode("environmentVariable[@name='ASPNETCORE_ENVIRONMENT']")
+            if ($existing -eq $null) {
+                $var = $xml.CreateElement("environmentVariable")
+                $var.SetAttribute("name", "ASPNETCORE_ENVIRONMENT")
+                $var.SetAttribute("value", "Production")
+                $envVars.AppendChild($var) | Out-Null
+            } else {
+                $existing.SetAttribute("value", "Production")
+            }
+            $xml.Save($targetWebConfig)
+        }
+    } catch {}
+}
+
 # 6. Configure AppPool & Website
 Write-Host "`n[4/5] Configuring IIS AppPool & Website on Port $Port..." -ForegroundColor Yellow
 if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
