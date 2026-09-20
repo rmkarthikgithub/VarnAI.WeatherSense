@@ -107,7 +107,7 @@ if (-not (Test-Path "IIS:\Sites\$siteName")) {
 
 # Grant AppPool permissions
 try {
-    & icacls "$targetPath" /grant "IIS AppPool\$appPoolName":(OI)(CI)M /T /Q | Out-Null
+    & icacls "$targetPath" /grant "IIS AppPool\${appPoolName}:(OI)(CI)M" /T /Q | Out-Null
 } catch {}
 
 # 7. Start AppPool & Site
